@@ -12,11 +12,10 @@ jobs:
 
       - name: Install scalino (apt)
         run: |
-          asset_url=$(curl -fsSL https://api.github.com/repos/lolgab/scalino/releases/latest \
-            | grep -o '"browser_download_url": *"[^"]*_amd64\.deb"' \
-            | cut -d'"' -f4)
-          curl -fsSLO "$asset_url"
-          sudo apt install -y ./scalino_*_amd64.deb
+          curl -fsSL https://lolgab.github.io/scalino/scalino-signing-key.pub.asc | sudo gpg --dearmor -o /usr/share/keyrings/scalino.gpg
+          echo "deb [signed-by=/usr/share/keyrings/scalino.gpg] https://lolgab.github.io/scalino/apt stable main" | sudo tee /etc/apt/sources.list.d/scalino.list
+          sudo apt update
+          sudo apt install -y scalino
 
       - name: Run hello world
         run: scalino run Hello.scala
