@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  hello-world:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install scalino (apt)
+        run: |
+          asset_url=$(curl -fsSL https://api.github.com/repos/lolgab/scalino/releases/latest \
+            | grep -o '"browser_download_url": *"[^"]*_amd64\.deb"' \
+            | cut -d'"' -f4)
+          curl -fsSLO "$asset_url"
+          sudo apt install -y ./scalino_*_amd64.deb
+
+      - name: Run hello world
+        run: scalino run Hello.scala
