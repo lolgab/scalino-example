@@ -1,0 +1,84 @@
+name: Release
+
+# Cross-compiles from a single Linux runner to Linux, macOS and Windows
+# (x86_64 + aarch64) using scalino's --native-target-triple.
+# Requires scalino >= 0.0.17 (first release with cross-compilation).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  TRIPLES: >-
+    x86_64-unknown-linux-musl,
+    aarch64-unknown-linux-musl,
+    x86_64-apple-darwin,
+    aarch64-apple-darwin,
+    x86_64-pc-windows-gnu,
+    aarch64-pc-windows-gnu
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install scalino (apt)
+        run: |
+          curl -fsSL https://lolgab.github.io/scalino/scalino-signing-key.pub.asc | sudo gpg --dearmor -o /usr/share/keyrings/scalino.gpg
+          echo "deb [signed-by=/usr/share/keyrings/scalino.gpg] https://lolgab.github.io/scalino/apt stable main" | sudo tee /etc/apt/sources.list.d/scalino.list
+          sudo apt update
+          sudo apt install -y scalino
+
+      - name: Cache sysroots
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/scalino/sysroots
+          key: scalino-sysroots-${{ hashFiles('.github/workflows/release.yml') }}
+
+      - name: Build sysroots
+        run: scalino sysroot build $(echo "$TRIPLES" | tr -d ' ' | tr ',' ' ')
+
+      - name: Cross-compile
+        run: |
+          scalino package --native-mode release-fast \
+            --native-target-triple "$(echo "$TRIPLES" | tr -d ' ')" \
+            -o dist/hello
+          ls -l dist
+
+      - name: Archive
+        run: |
+          cd dist
+          for f in hello-*; do
+            case "$f" in
+              *.exe) zip "${f%.exe}.zip" "$f" ;;
+              *) tar czf "$f.tar.gz" "$f" ;;
+            esac
+            rm "$f"
+          done
+          sha256sum * > SHA256SUMS
+          ls -l
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --generate-notes
