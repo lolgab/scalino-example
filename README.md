@@ -14,7 +14,7 @@ See `.github/workflows/ci.yml`.
 ## Release
 
 Pushing a `v*` tag runs `.github/workflows/release.yml`: one Linux runner
-cross-compiles with `--native-target-triple` for Linux (musl), macOS and
+cross-compiles with `--native-target-triple` for Linux (glibc), macOS and
 Windows, each on x86_64 and aarch64, and attaches the archives plus
 `SHA256SUMS` to a GitHub release.
 
