@@ -32,11 +32,21 @@ jobs:
           curl -fsSL https://lolgab.github.io/scalino/scalino-signing-key.pub.asc | sudo gpg --dearmor -o /usr/share/keyrings/scalino.gpg
           echo "deb [signed-by=/usr/share/keyrings/scalino.gpg] https://lolgab.github.io/scalino/apt stable main" | sudo tee /etc/apt/sources.list.d/scalino.list
           sudo apt update
-          sudo apt install -y scalino=0.0.18 lld
+          sudo apt install -y scalino=0.0.18
+
+      # The mingw sysroot ships libc++ 23 headers; Ubuntu's clang 18 can't compile them.
+      - name: Install clang 23 (apt.llvm.org)
+        run: |
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/llvm.gpg
+          echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] https://apt.llvm.org/noble/ llvm-toolchain-noble-23 main" | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt update
+          sudo apt install -y clang-23 lld-23
+          sudo ln -sf /usr/bin/ld.lld-23 /usr/local/bin/ld.lld
 
       - name: Cross-compile
         run: |
           scalino package --native-mode release-fast \
+            --native-clang clang-23 --native-clangpp clang++-23 \
             --native-target-triple "$(echo "$TRIPLES" | tr -d ' ')" \
             -o dist/hello
           ls -l dist
