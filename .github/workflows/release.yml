@@ -46,7 +46,7 @@ jobs:
       - name: Cross-compile
         run: |
           scalino package --native-mode release-fast \
-            --native-clang clang-23 --native-clangpp clang++-23 \
+            --native-clang /usr/bin/clang-23 --native-clangpp /usr/bin/clang++-23 \
             --native-target-triple "$(echo "$TRIPLES" | tr -d ' ')" \
             -o dist/hello
           ls -l dist
