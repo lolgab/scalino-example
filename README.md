@@ -18,7 +18,7 @@ cross-compiles with `--native-target-triple` for Linux (glibc), macOS and
 Windows, each on x86_64 and aarch64, and attaches the archives plus
 `SHA256SUMS` to a GitHub release.
 
-Needs scalino >= 0.0.17, the first release with cross-compilation (see
+Needs scalino >= 0.0.18 (cross-compilation, see
 [Cross-compilation](https://github.com/lolgab/scalino#cross-compilation)
 in the scalino README). The same `scalino package --native-target-triple ...`
 command was verified locally from macOS arm64 for all six targets; the

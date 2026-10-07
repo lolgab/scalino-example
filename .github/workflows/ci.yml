@@ -16,7 +16,7 @@ jobs:
           curl -fsSL https://lolgab.github.io/scalino/scalino-signing-key.pub.asc | sudo gpg --dearmor -o /usr/share/keyrings/scalino.gpg
           echo "deb [signed-by=/usr/share/keyrings/scalino.gpg] https://lolgab.github.io/scalino/apt stable main" | sudo tee /etc/apt/sources.list.d/scalino.list
           sudo apt update
-          sudo apt install -y scalino
+          sudo apt install -y scalino=0.0.18
 
       - name: Run hello world
         run: scalino run
